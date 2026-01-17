@@ -126,7 +126,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
         role: 'assistant',
         content: response || "I'm sorry, I couldn't process that.",
         timestamp: Date.now(),
-        isThinking: useThinking
+        isThinking: useThinking,
         hasAnimated: false
       };
 
