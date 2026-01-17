@@ -4,7 +4,7 @@ import type { Message, Attachment } from "./types.js";
 const apiKey = import.meta.env.VITE_API_KEY;
 if (!apiKey) console.warn("API_KEY is missing in environment variables.");
 
-// PERBAIKAN: Menggunakan GoogleGenAI, bukan GenAI
+// Inisialisasi Client
 const client = new GoogleGenAI({ apiKey: apiKey || "" });
 
 const SYSTEM_INSTRUCTION = `You are Golem, a professional, elegant, and futuristic AI assistant.
@@ -25,7 +25,7 @@ export const streamMessageToGolem = async (
     // Pilih model
     const modelId = useThinking ? 'gemini-2.0-flash-thinking-exp-01-21' : 'gemini-2.0-flash';
 
-    // Format history sesuai SDK @google/genai
+    // Format history
     const formattedHistory = history.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [
@@ -39,7 +39,7 @@ export const streamMessageToGolem = async (
       ]
     }));
 
-    // Siapkan pesan baru
+    // Siapkan konten baru
     const currentParts: any[] = [];
     
     if (attachments && attachments.length > 0) {
@@ -57,7 +57,7 @@ export const streamMessageToGolem = async (
       currentParts.push({ text: prompt });
     }
 
-    // Panggil API Streaming
+    // Panggil API
     const response = await client.models.generateContentStream({
       model: modelId,
       contents: [
@@ -75,7 +75,9 @@ export const streamMessageToGolem = async (
 
     let fullText = "";
     
-    for await (const chunk of response.stream) {
+    // PERBAIKAN DI SINI:
+    // Hapus ".stream". Response itu sendiri adalah iterator.
+    for await (const chunk of response) {
       const chunkText = chunk.text();
       if (chunkText) {
         fullText += chunkText;
