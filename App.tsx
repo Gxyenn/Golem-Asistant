@@ -1,19 +1,17 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Page, ChatThread, Message } from './types';
 import LandingPage from './components/LandingPage';
 import ChatPage from './components/ChatPage';
 
 const STORAGE_KEY = 'golem_chat_history_v1';
-const THEME_KEY = 'golem_theme_v1';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>(Page.LANDING);
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isSwitchingThread, setIsSwitchingThread] = useState(false);
 
-  // Initialize data and theme
+  // Initialize data
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -21,25 +19,8 @@ const App: React.FC = () => {
         setThreads(JSON.parse(saved));
       } catch (e) { console.error(e); }
     }
-    
-    const savedTheme = localStorage.getItem(THEME_KEY);
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
-    }
+    document.documentElement.classList.add('dark');
   }, []);
-
-  const toggleTheme = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem(THEME_KEY, 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem(THEME_KEY, 'light');
-    }
-  };
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(threads));
@@ -92,22 +73,29 @@ const App: React.FC = () => {
     }));
   }, []);
 
+  const handleSelectThread = useCallback((id: string) => {
+    setIsSwitchingThread(true);
+    setActiveThreadId(id);
+    setTimeout(() => {
+      setIsSwitchingThread(false);
+    }, 500);
+  }, []);
+
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'}`}>
+    <div className="min-h-screen transition-colors duration-300 bg-slate-900 text-white">
       {currentPage === Page.LANDING ? (
-        <LandingPage onStart={handleStartChatting} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />
+        <LandingPage onStart={handleStartChatting} />
       ) : (
         <ChatPage 
           threads={threads}
           activeThreadId={activeThreadId}
           onNewChat={handleNewChat}
-          onSelectThread={setActiveThreadId}
+          onSelectThread={handleSelectThread}
           onDeleteThread={handleDeleteThread}
           onDeleteAll={handleDeleteAll}
           onUpdateMessages={handleUpdateMessages}
           onGoHome={() => setCurrentPage(Page.LANDING)}
-          isDarkMode={isDarkMode}
-          onToggleTheme={toggleTheme}
+          isSwitchingThread={isSwitchingThread}
         />
       )}
     </div>
