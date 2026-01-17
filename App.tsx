@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Page } from './types';
-import type { ChatThread, Message } from './types';
-import LandingPage from './components/LandingPage';
-import ChatPage from './components/ChatPage';
+import { Page } from './types.js';
+import type { ChatThread, Message } from './types.js';
+import LandingPage from './components/LandingPage.js';
+import ChatPage from './components/ChatPage.js';
 
 const STORAGE_KEY = 'golem_chat_history_v1';
 
@@ -66,9 +66,11 @@ const App: React.FC = () => {
     setThreads(prev => prev.map(t => {
       if (t.id === threadId) {
         const firstUserMsg = messages.find(m => m.role === 'user');
-        const newTitle = firstUserMsg 
-          ? (firstUserMsg.content.length > 30 ? firstUserMsg.content.substring(0, 30) + '...' : firstUserMsg.content)
-          : t.title;
+        let newTitle = t.title;
+        if (firstUserMsg && firstUserMsg.content) {
+            newTitle = firstUserMsg.content.slice(0, 25);
+            if (firstUserMsg.content.length > 25) newTitle += '...';
+        }
 
         return { ...t, messages, title: newTitle, updatedAt: Date.now() };
       }
