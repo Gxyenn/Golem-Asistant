@@ -9,19 +9,26 @@ Always respond using Markdown for better readability.`;
 export const sendMessageToGolem = async (
   prompt: string, 
   history: Message[], 
-  _useThinking: boolean = false, // Parameter ini kita abaikan dulu agar stabil
+  _useThinking: boolean = false, 
   attachments?: { data: string; mimeType: string }[]
 ) => {
   try {
-    // 1. Ambil API Key
     const apiKey = import.meta.env.VITE_API_KEY;
+    
+    // --- DEBUGGING START ---
+    console.log("Memulai request ke Gemini...");
+    console.log("Status API Key:", apiKey ? "ADA (Terbaca)" : "KOSONG (Undefined)");
+    if (apiKey) {
+        console.log("3 Huruf awal API Key:", apiKey.substring(0, 3)); // Cek apakah AIz...
+    }
+    // --- DEBUGGING END ---
+
     if (!apiKey) {
-      throw new Error("API Key belum disetting di Vercel!");
+      throw new Error("API Key belum terbaca oleh aplikasi.");
     }
 
     const ai = new GoogleGenAI({ apiKey });
     
-    // 2. Format History
     const contents = history.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [
@@ -35,7 +42,6 @@ export const sendMessageToGolem = async (
       ]
     }));
     
-    // 3. Tambahkan pesan baru
     const currentParts: any[] = [{ text: prompt }];
     if (attachments) {
       attachments.forEach(att => {
@@ -53,10 +59,10 @@ export const sendMessageToGolem = async (
       parts: currentParts
     });
 
-    // 4. Request ke Gemini (GUNAKAN MODEL STABIL & CONFIG SEDERHANA)
-    // Hapus 'thinkingConfig' karena itu penyebab crash di model standar
+    console.log("Mengirim data ke model: gemini-1.5-flash"); // Cek model
+
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash', // Model paling cepat dan stabil saat ini
+      model: 'gemini-1.5-flash',
       contents: contents as any,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -64,9 +70,15 @@ export const sendMessageToGolem = async (
       },
     });
 
-    return response.text;
-  } catch (error) {
-    console.error("Gemini API Error Detail:", error); // Cek Console browser (F12) untuk detail
+    console.log("Respon diterima!");
+    return response.text();
+  } catch (error: any) {
+    // --- PENTING: MENAMPILKAN ERROR ASLI ---
+    console.error(">>> ERROR GEMINI ASLI:", error);
+    console.error(">>> PESAN ERROR:", error.message);
+    if (error.response) {
+        console.error(">>> DETAIL:", JSON.stringify(error.response, null, 2));
+    }
     throw error;
   }
 };
