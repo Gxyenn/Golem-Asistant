@@ -27,7 +27,7 @@ export const sendMessageToGolem = async (
     
     // Gunakan model yang stabil
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-pro",
+      model: "gemini-1.5-pro",
       systemInstruction: SYSTEM_INSTRUCTION 
     });
 
