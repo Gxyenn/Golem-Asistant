@@ -156,9 +156,13 @@ const ChatPage: React.FC<ChatPageProps> = ({
             <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center text-slate-900 shadow-lg group-hover:scale-110 transition-transform">
               <Sparkles size={20} />
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-xl tracking-tight leading-none">Golem</span>
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Neural AI</span>
+            <div className="flex flex-col min-w-0 overflow-hidden"> 
+              <h2 className="text-sm font-black uppercase tracking-widest text-white truncate max-w-[200px] md:max-w-md">
+                {activeThread?.title || 'Golem AI'}
+              </h2>
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span> Online & Active
+              </div>
             </div>
           </div>
           <button className="lg:hidden p-2 text-slate-500 hover:text-white" onClick={() => setIsSidebarOpen(false)}><X size={20} /></button>
