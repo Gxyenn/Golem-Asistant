@@ -6,6 +6,8 @@ Your personality is: polite, kind, cheerful, and friendly.
 Developed by Dev Stoky.
 Always respond using Markdown for better readability.`;
 
+// ... (bagian import dan variabel atas biarkan sama) ...
+
 export const sendMessageToGolem = async (
   prompt: string, 
   history: Message[], 
@@ -15,20 +17,15 @@ export const sendMessageToGolem = async (
   try {
     const apiKey = import.meta.env.VITE_API_KEY;
     
-    // --- DEBUGGING START ---
-    console.log("Memulai request ke Gemini...");
-    console.log("Status API Key:", apiKey ? "ADA (Terbaca)" : "KOSONG (Undefined)");
-    if (apiKey) {
-        console.log("3 Huruf awal API Key:", apiKey.substring(0, 3)); // Cek apakah AIz...
-    }
-    // --- DEBUGGING END ---
-
+    // Debugging logs (Biarkan untuk cek error)
     if (!apiKey) {
+      console.error("API Key is missing!");
       throw new Error("API Key belum terbaca oleh aplikasi.");
     }
 
     const ai = new GoogleGenAI({ apiKey });
     
+    // ... (bagian formatting contents biarkan sama) ...
     const contents = history.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [
@@ -42,6 +39,7 @@ export const sendMessageToGolem = async (
       ]
     }));
     
+    // Tambahkan prompt user
     const currentParts: any[] = [{ text: prompt }];
     if (attachments) {
       attachments.forEach(att => {
@@ -59,7 +57,7 @@ export const sendMessageToGolem = async (
       parts: currentParts
     });
 
-    console.log("Mengirim data ke model: gemini-1.5-flash"); // Cek model
+    console.log("Mengirim request...");
 
     const response = await ai.models.generateContent({
       model: 'gemini-1.5-flash',
@@ -70,14 +68,16 @@ export const sendMessageToGolem = async (
       },
     });
 
-    console.log("Respon diterima!");
-    return response.text();
+    console.log("Respon sukses!");
+
+    // --- PERBAIKAN DI SINI ---
+    // HAPUS tanda kurung (). Gunakan null coalescing (||) untuk jaga-jaga jika kosong.
+    return response.text || "Maaf, saya tidak dapat menghasilkan respons."; 
+    
   } catch (error: any) {
-    // --- PENTING: MENAMPILKAN ERROR ASLI ---
-    console.error(">>> ERROR GEMINI ASLI:", error);
-    console.error(">>> PESAN ERROR:", error.message);
+    console.error("ERROR GEMINI:", error);
     if (error.response) {
-        console.error(">>> DETAIL:", JSON.stringify(error.response, null, 2));
+        console.error("DETAIL:", JSON.stringify(error.response, null, 2));
     }
     throw error;
   }
