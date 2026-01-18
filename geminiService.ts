@@ -21,11 +21,11 @@ export const sendMessageToGolem = async (
     }
     const ai = new GoogleGenAI({ apiKey });
     
-    // Format history
+    // Konversi riwayat pesan ke format Gemini API
     const contents = history.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [
-        { text: msg.content },
+        { text: msg.content || "" },
         ...(msg.attachments?.map((att: Attachment) => ({
           inlineData: {
             data: att.data,
@@ -35,8 +35,8 @@ export const sendMessageToGolem = async (
       ]
     }));
     
-    // Tambahkan pesan user saat ini
-    const currentParts: any[] = [{ text: prompt }];
+    // Siapkan pesan terbaru dari user
+    const currentParts: any[] = [{ text: prompt || "Analyze this" }];
     if (attachments) {
       attachments.forEach(att => {
         currentParts.push({
@@ -53,9 +53,12 @@ export const sendMessageToGolem = async (
       parts: currentParts
     });
 
-    // PENTING: Gunakan model yang valid. 
-    // 'gemini-3' belum ada, gunakan 'gemini-2.0-flash-exp'
-    const modelName = useThinking ? 'gemini-2.0-flash-thinking-exp-1219' : 'gemini-2.0-flash-exp';
+    // Pemilihan model: 
+    // Menggunakan gemini-2.0-flash-thinking untuk mode 'Thinking' 
+    // dan gemini-1.5-flash untuk mode normal agar cepat dan stabil.
+    const modelName = useThinking 
+      ? 'gemini-2.0-flash-thinking-exp-1219' 
+      : 'gemini-1.5-flash';
 
     const response = await ai.models.generateContent({
       model: modelName,
@@ -63,14 +66,13 @@ export const sendMessageToGolem = async (
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         temperature: 0.7,
+        // Konfigurasi Thinking hanya aktif jika useThinking bernilai true
         ...(useThinking ? { thinkingConfig: { thinkingBudget: 1024 } } : {})
       },
     });
 
-    // --- BAGIAN PERBAIKAN DI SINI ---
-    // Hapus tanda kurung (). Ambil nilai properti secara langsung.
-    // Pastikan kita mengembalikan string kosong jika null/undefined
-    return response.text || "No response text generated."; 
+    // Mengambil teks dari response (di SDK @google/genai, ini adalah properti string)
+    return response.text || "I'm sorry, I couldn't generate a response.";
     
   } catch (error) {
     console.error("Gemini API Error:", error);
